@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>創作 — FrameForge 畫鍛</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        :root { --bg:#0a0a0f; --panel:#12121a; --border:#1e1e2e; --text:#eee; --muted:#888; --accent:#a855f7; }
+        body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif; background:var(--bg); color:var(--text); }
+        a { color:var(--accent); text-decoration:none; }
+        .nav { display:flex; justify-content:space-between; align-items:center; padding:14px 20px; border-bottom:1px solid var(--border); }
+        .nav .logo { font-weight:700; cursor:pointer; }
+        .usage { font-size:.85rem; color:var(--muted); }
+        .usage strong { color:var(--accent); }
+        .badge { font-size:.65rem; font-weight:700; padding:3px 8px; border-radius:999px; background:rgba(168,85,247,.15); color:var(--accent); border:1px solid rgba(168,85,247,.3); }
+        .main { display:grid; grid-template-columns:380px 1fr; gap:24px; max-width:1200px; margin:0 auto; padding:24px; }
+        .panel { background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:20px; }
+        .panel h3 { font-size:.95rem; margin-bottom:14px; }
+        .panel h3 i { color:var(--accent); margin-right:6px; }
+        .form-group { margin-bottom:16px; }
+        .form-group label { display:block; font-size:.85rem; color:var(--muted); margin-bottom:6px; }
+        .form-group textarea, .form-group select { width:100%; background:rgba(0,0,0,.3); border:1px solid var(--border); border-radius:8px; padding:10px; color:#fff; font-size:.9rem; outline:none; }
+        .form-group textarea { resize:vertical; min-height:80px; }
+        .form-group textarea:focus, .form-group select:focus { border-color:var(--accent); }
+        .style-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:16px; }
+        .style-opt { padding:12px 6px; background:rgba(0,0,0,.2); border:1px solid var(--border); border-radius:8px; text-align:center; cursor:pointer; font-size:.8rem; transition:all .2s; }
+        .style-opt:hover { border-color:var(--accent); }
+        .style-opt.sel { border-color:var(--accent); background:rgba(168,85,247,.08); }
+        .style-opt .emoji { font-size:1.5rem; display:block; margin-bottom:4px; }
+        .size-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:16px; }
+        .size-opt { padding:10px; background:rgba(0,0,0,.2); border:1px solid var(--border); border-radius:8px; text-align:center; cursor:pointer; font-size:.8rem; transition:all .2s; }
+        .size-opt:hover { border-color:var(--accent); }
+        .size-opt.sel { border-color:var(--accent); background:rgba(168,85,247,.08); }
+        .gen-btn { width:100%; padding:14px; background:var(--accent); color:#fff; border:none; border-radius:10px; font-size:1rem; font-weight:700; cursor:pointer; transition:all .2s; }
+        .gen-btn:hover { background:#9333ea; }
+        .gen-btn:disabled { opacity:.5; cursor:not-allowed; }
+        .result { min-height:400px; }
+        .empty { text-align:center; padding:60px 20px; color:var(--muted); }
+        .empty i { font-size:3rem; opacity:.3; display:block; margin-bottom:12px; }
+        .spin { animation:spin 1s linear infinite; }
+        @keyframes spin { to { transform:rotate(360deg); } }
+        .img-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
+        .img-card { background:var(--panel); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+        .img-card img { width:100%; aspect-ratio:1; object-fit:cover; cursor:pointer; transition:transform .2s; }
+        .img-card img:hover { transform:scale(1.02); }
+        .img-card .meta { padding:10px; display:flex; justify-content:space-between; align-items:center; font-size:.8rem; color:var(--muted); }
+        .download-btn { display:inline-flex; align-items:center; gap:6px; padding:6px 14px; background:rgba(168,85,247,.15); border:1px solid rgba(168,85,247,.3); border-radius:8px; color:var(--accent); cursor:pointer; font-size:.8rem; text-decoration:none; }
+        .download-btn:hover { background:rgba(168,85,247,.25); }
+        .img-preview-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,.9); display:flex; align-items:center; justify-content:center; z-index:100; cursor:pointer; }
+        .img-preview-overlay img { max-width:90%; max-height:90%; border-radius:8px; }
+        @media(max-width:768px) { .main { grid-template-columns:1fr; } .img-grid { grid-template-columns:1fr; } }
+    </style>
+</head>
+<body>
+<nav class="nav">
+    <div class="logo" onclick="location.href='index.html'">🖼️ FrameForge 畫鍛</div>
+    <div style="display:flex;align-items:center;gap:14px;">
+        <span class="usage" id="usageDisplay"><strong>20</strong>/20 張可用</span>
+        <span class="badge">FREE</span>
+    </div>
+</nav>
+
+<div class="main">
+    <div>
+        <div class="panel" style="margin-bottom:14px;">
+            <h3><i class="fa-solid fa-pen-fancy"></i> 圖片設定</h3>
+            <div class="form-group">
+                <label>描述你想要的圖片</label>
+                <textarea id="prompt" placeholder="例如：星空下的城堡，賽博龐克風格，霓虹燈光"></textarea>
+            </div>
+
+            <label style="font-size:.85rem;color:var(--muted);display:block;margin-bottom:8px;">藝術風格</label>
+            <div class="style-grid" id="styleGrid">
+                <div class="style-opt sel" data-style="realistic"><span class="emoji">📸</span>寫實</div>
+                <div class="style-opt" data-style="anime"><span class="emoji">🎌</span>動畫</div>
+                <div class="style-opt" data-style="oil"><span class="emoji">🎨</span>油畫</div>
+                <div class="style-opt" data-style="sketch"><span class="emoji">✏️</span>素描</div>
+                <div class="style-opt" data-style="cyberpunk"><span class="emoji">🌆</span>賽博龐克</div>
+                <div class="style-opt" data-style="fantasy"><span class="emoji">🏰</span>奇幻</div>
+                <div class="style-opt" data-style="ink"><span class="emoji">🎴</span>水墨</div>
+                <div class="style-opt" data-style="watercolor"><span class="emoji">🌈</span>水彩</div>
+                <div class="style-opt" data-style="pixel"><span class="emoji">🎭</span>像素</div>
+                <div class="style-opt" data-style="3d"><span class="emoji">💎</span>3D 渲染</div>
+            </div>
+
+            <label style="font-size:.85rem;color:var(--muted);display:block;margin-bottom:8px;">圖片尺寸</label>
+            <div class="size-grid">
+                <div class="size-opt sel" data-size="512x512">512²</div>
+                <div class="size-opt" data-size="768x768">768²</div>
+                <div class="size-opt" data-size="512x768">直式</div>
+                <div class="size-opt" data-size="768x512">橫式</div>
+                <div class="size-opt" data-size="1024x1024">1024²</div>
+                <div class="size-opt" data-size="1024x576">16:9</div>
+            </div>
+
+            <div class="form-group">
+                <label>生成張數</label>
+                <div style="display:flex;gap:8px;">
+                    <div class="size-opt sel" data-count="1" style="flex:1;text-align:center;cursor:pointer;" onclick="selectCount(1)">1 張</div>
+                    <div class="size-opt" data-count="2" style="flex:1;text-align:center;cursor:pointer;" onclick="selectCount(2)">2 張</div>
+                    <div class="size-opt" data-count="4" style="flex:1;text-align:center;cursor:pointer;" onclick="selectCount(4)">4 張</div>
+                </div>
+            </div>
+
+            <button class="gen-btn" id="genBtn" onclick="generate()">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> 生成圖片
+            </button>
+        </div>
+    </div>
+
+    <div class="result" id="resultArea">
+        <div class="empty">
+            <i class="fa-solid fa-image"></i>
+            <p>輸入描述，開始創作你的圖片</p>
+        </div>
+    </div>
+</div>
+
+<script>
+const API = '';
+let selectedStyle = 'realistic';
+let selectedSize = '512x512';
+let selectedCount = 1;
+
+document.querySelectorAll('.style-opt').forEach(el => {
+    el.addEventListener('click', () => {
+        document.querySelectorAll('.style-opt').forEach(x => x.classList.remove('sel'));
+        el.classList.add('sel');
+        selectedStyle = el.dataset.style;
+    });
+});
+
+document.querySelectorAll('.size-grid .size-opt').forEach(el => {
+    el.addEventListener('click', () => {
+        document.querySelectorAll('.size-grid .size-opt').forEach(x => x.classList.remove('sel'));
+        el.classList.add('sel');
+        selectedSize = el.dataset.size;
+    });
+});
+
+function selectCount(n) {
+    selectedCount = n;
+    document.querySelectorAll('[data-count]').forEach(el => {
+        el.classList.toggle('sel', parseInt(el.dataset.count) === n);
+    });
+}
+
+async function generate() {
+    const prompt = document.getElementById('prompt').value.trim();
+    if (!prompt) return alert('請輸入圖片描述');
+    
+    const btn = document.getElementById('genBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner spin"></i> 生成中...';
+    
+    document.getElementById('resultArea').innerHTML = '<div class="empty"><i class="fa-solid fa-spinner spin" style="font-size:2rem;"></i><p style="margin-top:12px;">AI 正在創作中，請稍候...</p></div>';
+    
+    try {
+        const res = await fetch(API + '/api/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt, style: selectedStyle, size: selectedSize, count: selectedCount })
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+            showResult(data);
+        } else {
+            showError(data.error || '生成失敗');
+        }
+    } catch (err) {
+        showError('連線失敗: ' + err.message);
+    }
+    
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> 生成圖片';
+}
+
+function showResult(data) {
+    const images = data.images || [data];
+    document.getElementById('resultArea').innerHTML = `
+        <div class="img-grid">
+            ${images.map((img, i) => `
+                <div class="img-card">
+                    <img src="${img.url || img}" onclick="preview(this.src)" alt="Generated ${i+1}">
+                    <div class="meta">
+                        <span>${selectedStyle} · ${selectedSize}</span>
+                        <a href="${img.url || img}" download class="download-btn"><i class="fa-solid fa-download"></i></a>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+function preview(src) {
+    const overlay = document.createElement('div');
+    overlay.className = 'img-preview-overlay';
+    overlay.innerHTML = `<img src="${src}">`;
+    overlay.onclick = () => overlay.remove();
+    document.body.appendChild(overlay);
+}
+
+function showError(msg) {
+    document.getElementById('resultArea').innerHTML = `<div class="empty"><i class="fa-solid fa-triangle-exclamation"></i><p>${msg}</p></div>`;
+}
+</script>
+</body>
+</html>
