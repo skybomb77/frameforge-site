@@ -1,6 +1,6 @@
 // FrameForge 配置
 const CONFIG = {
-    api: "http://localhost:5005",
+    api: "https://interstaminal-unvirtuously-gennie.ngrok-free.dev/frameforge",
     name: "FrameForge",
     version: "1.0.0"
 };
