@@ -159,10 +159,9 @@ async function generate() {
     document.getElementById('resultArea').innerHTML = '<div class="empty"><i class="fa-solid fa-spinner spin" style="font-size:2rem;"></i><p style="margin-top:12px;">AI 正在創作中，請稍候...</p></div>';
     
     try {
-        const res = await fetch(API + '/api/generate', {
+        const res = await apiFetch(API + '/api/generate', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prompt, style: selectedStyle, size: selectedSize, count: selectedCount })
+            body: { prompt, style: selectedStyle, size: selectedSize, count: selectedCount }
         });
         const data = await res.json();
         
